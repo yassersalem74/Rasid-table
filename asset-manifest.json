@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/Rasid-table/static/css/main.dc686c17.css",
+    "main.js": "/Rasid-table/static/js/main.20813933.js",
+    "index.html": "/Rasid-table/index.html",
+    "main.dc686c17.css.map": "/Rasid-table/static/css/main.dc686c17.css.map",
+    "main.20813933.js.map": "/Rasid-table/static/js/main.20813933.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.dc686c17.css",
+    "static/js/main.20813933.js"
+  ]
+}
