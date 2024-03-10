@@ -1,0 +1,96 @@
+//import css files
+import "./main.css";
+
+import Navbar from "./component/navbar";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Header from "./component/header";
+import Footer from "./component/footer";
+import CardDetails from "./component/cardDetails";
+import NotFound from "./component/NotFound";
+import FormInput from "./component/Form";
+import Error404 from "./component/Error404";
+import Home from "./component/home";
+import UseStateExample from "./component/useStateExample";
+import UseEffectEcample from "./component/useEffectEcample";
+import UseRefExample from "./component/useRefExample";
+
+import { ColorContext } from "./component/useContextExample";
+
+// import images
+import spiderImage from "./images/spider1.jpg";
+import superImage from "./images/superman.jpg";
+import minImage from "./images/min.jpg";
+import pandaImage from "./images/panda.jpg";
+import { useContext } from "react";
+
+function App() {
+  // const data = [
+  //   { title: "title1", description: "description1", img: spiderImage },
+  //   { title: "title2", description: "description2", img: superImage },
+  //   { title: "title3", description: "description3", img: minImage },
+  //   { title: "title4", description: "description4", img: pandaImage },
+  // ];
+
+  // const printTitle = (message) => {
+  //   console.log("this is from" + message);
+  // };
+
+
+  //Context Example
+  const data = useContext(ColorContext)
+
+
+  return (
+    <div>
+      <Navbar />
+
+      <UseStateExample />
+      <UseEffectEcample />
+      {/* <UseRefExample /> */}
+      {data} 
+    
+
+      {/* <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/header" element={<Header />} />
+          <Route path="/cardDetails" element={<CardDetails />} />
+          <Route path="/Form" element={<FormInput />} />
+          <Route path="/footer" element={<Footer />} />
+          <Route path="*" element={<Error404 />} />
+        </Routes>
+      </BrowserRouter> */}
+
+      {/* navbar  */}
+      {/* <Navbar />
+
+
+      {/* ///////  */}
+
+      {/* cards  */}
+      {/* show cards if there are data,else NO DATA FOUND  */}
+      {/* {data.length ? (
+        data.map((item, index) => {
+          return (
+            <CardDetails
+              key={index}
+              title={item.title}
+              description={item.description}
+              img={item.img}
+              clickMe={printTitle}
+            />
+          );
+        })
+      ) : (
+        <NotFound message="NO DATA FOUND" color="danger" />
+      )} */}
+      {/* //////////////////////////////////////////////////////////  */}
+
+      {/* Form  */}
+      {/* <FormInput /> */}
+      {/* ////////  */}
+    </div>
+  );
+}
+
+export default App;
