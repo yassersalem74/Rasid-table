@@ -1,36 +1,56 @@
 import React, { useState } from "react";
-import { FaArrowUp, FaArrowDown, FaPlus, FaTrash } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaTrash } from "react-icons/fa";
 
 const QuestionForm = () => {
+  // State to manage questions
+  const [questions, setQuestions] = useState([]);
 
+  // State to manage a new question being added
+  const [newQuestion, setNewQuestion] = useState({
+    name: "",
+    type: "essay",
+    choices: [],
+    stage: "opened",
+    attachFile: false,
+    newChoice: "",
+  });
 
-    // manage  questions and to track the data for a new question being added
+  // State to manage filter stage
+  const [filterStage, setFilterStage] = useState("all");
 
-    // questions => state holds array of question objects 
-    const [questions, setQuestions] = useState([]);
+  // Function to handle input change for a question
+  const handleInputChange = (e, index, choiceIndex) => {
+    const { name, value, type, checked } = e.target;
+    const updatedQuestions = [...questions];
 
-    // newQuestion => state holds array of new question add objects , initialized  as empty
-    const [newQuestion, setNewQuestion] = useState({
-      name: "",
-      type: "essay",
-      choices: [],
-      stage: "opened",
-      attachFile: false,
-      newChoice: "", // Track the new choice input
-    });
-
-
-  const [questionType, setQuestionType] = useState("");  //state to track the type of question 
-  const [question, setQuestion] = useState("");          //state to track the text  question added
-  const [choices, setChoices] = useState([]);            //state to track the choices for a multiple-choice question
-  const [filterStage, setFilterStage] = useState("all"); // State for filter stage
-
-    
+    // If the input change is for choices
+    if (name.startsWith("choices")) {
+      if (type === "checkbox") {
+        // Handle checkbox inputs for choices
+        const selectedChoices = updatedQuestions[index].choices;
+        const selectedChoiceIndex = selectedChoices.indexOf(value);
+        if (selectedChoiceIndex === -1) {
+          updatedQuestions[index].choices.push(value);
+        } else {
+          updatedQuestions[index].choices.splice(selectedChoiceIndex, 1);
+        }
+      } else {
+        // Handle text inputs for choices
+        updatedQuestions[index].choices = [value];
+      }
+    } else if (name === "newChoice") {
+      // Update newChoice state for adding new choices
+      setNewQuestion({ ...newQuestion, [name]: value });
+    } else {
+      // For other input changes
+      updatedQuestions[index][name] = type === "checkbox" ? checked : value;
+    }
+    setQuestions(updatedQuestions);
+  };
+  // Function to add a new question
   const handleAddQuestion = () => {
-     // Adding the new question to the list of questions [...questions]
     setQuestions([...questions, newQuestion]);
-
-    //clear all input fields in the question form
+    // Reset newQuestion state after adding
     setNewQuestion({
       name: "",
       type: "essay",
@@ -41,63 +61,55 @@ const QuestionForm = () => {
     });
   };
 
-  const handleInputChange = (e, index, choiceIndex) => {
-    const { name, value, type, checked } = e.target;
-    const updatedQuestions = [...questions];
+  
 
-    if (name.startsWith("choices")) {
-      if (type === "checkbox") {
-        // Toggle the selected choice without removing others
-        const selectedChoices = updatedQuestions[index].choices;
-        const selectedChoiceIndex = selectedChoices.indexOf(value);
-        if (selectedChoiceIndex === -1) {
-          // If the choice is not already selected, add it
-          updatedQuestions[index].choices.push(value);
-        } else {
-          // If the choice is already selected, remove it
-          updatedQuestions[index].choices.splice(selectedChoiceIndex, 1);
-        }
-      } else {
-        // For radio buttons, update the choices array with only the selected value
-        updatedQuestions[index].choices = [value];
-      }
-    } else if (name === "newChoice") {
-      setNewQuestion({ ...newQuestion, [name]: value });
-    } else {
-      // For other inputs, update the value directly
-      updatedQuestions[index][name] = type === "checkbox" ? checked : value;
-    }
+  // Function to handle question type change
+  const handleQuestionTypeChange = (e, index) => {
+    const { value } = e.target;
+    const updatedQuestions = [...questions];
+    updatedQuestions[index].type = value;
     setQuestions(updatedQuestions);
   };
 
-  const handleQuestionTypeChange = (e) => {
-    setQuestionType(e.target.value);
-    setQuestion(""); // Clear previous question
-    setChoices([]); // Clear previous choices
+  // Function to delete a question
+  const handleDeleteQuestion = (index) => {
+    const updatedQuestions = questions.filter((_, i) => i !== index);
+    setQuestions(updatedQuestions);
   };
 
-  const handleQuestionChange = (e) => {
-    setQuestion(e.target.value);
+  
+
+   // Function to add a new choice for a question
+   const handleAddChoice = (index) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[index].choices.push("");
+    setQuestions(updatedQuestions);
   };
 
-  const handleAddChoice = () => {
-    setChoices([...choices, ""]);
+
+  // Function to handle filter stage change
+  const handleFilterChange = (e) => {
+    setFilterStage(e.target.value);
   };
 
-  const handleRemoveChoice = (index) => {
-    const updatedChoices = [...choices];
-    updatedChoices.splice(index, 1);
-    setChoices(updatedChoices);
+ 
+
+  // Function to remove a choice for a question
+  const handleRemoveChoice = (index, choiceIndex) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[index].choices.splice(choiceIndex, 1);
+    setQuestions(updatedQuestions);
   };
 
-  const renderInputBasedOnType = () => {
-    switch (questionType) {
+  // Function to render input fields based on question type
+  const renderInputBasedOnType = (question, index) => {
+    switch (question.type) {
       case "essay":
         return (
           <textarea
             className="border border-gray-400 p-2 w-full"
-            value={question}
-            onChange={handleQuestionChange}
+            value={question.choices[0]} // Fix value assignment here
+            onChange={(e) => handleInputChange(e, index)}
             placeholder="Enter your essay question here..."
           />
         );
@@ -105,31 +117,36 @@ const QuestionForm = () => {
       case "multi_choice":
         return (
           <>
-            {choices.map((choice, index) => (
-              <div key={index} className="flex items-center">
-                <input
-                  type={questionType === "single_choice" ? "radio" : "checkbox"}
-                  value={choice}
-                  checked={
-                    questionType === "single_choice"
-                      ? question === choice
-                      : choices.includes(choice)
-                  }
-                  onChange={handleQuestionChange}
-                />
+            {question.choices.map((choice, choiceIndex) => (
+              <div key={choiceIndex} className="flex items-center">
+                {question.type === "single_choice" ? (
+                  <input
+                    type="radio"
+                    value={choice}
+                    checked={question.name === choice}
+                    onChange={(e) => handleInputChange(e, index)}
+                  />
+                ) : (
+                  <input
+                    type="checkbox"
+                    value={choice}
+                    checked={question.choices.includes(choice)}
+                    onChange={(e) => handleInputChange(e, index, choiceIndex)}
+                  />
+                )}
                 <input
                   type="text"
                   value={choice}
                   onChange={(e) => {
-                    const updatedChoices = [...choices];
-                    updatedChoices[index] = e.target.value;
-                    setChoices(updatedChoices);
+                    const updatedQuestions = [...questions];
+                    updatedQuestions[index].choices[choiceIndex] = e.target.value;
+                    setQuestions(updatedQuestions);
                   }}
                   className="border border-gray-400 p-2 w-full ml-2"
                 />
                 <button
                   type="button"
-                  onClick={() => handleRemoveChoice(index)}
+                  onClick={() => handleRemoveChoice(index, choiceIndex)}
                   className="p-2"
                 >
                   <FaTrash className="text-red-500" />
@@ -138,7 +155,7 @@ const QuestionForm = () => {
             ))}
             <button
               type="button"
-              onClick={handleAddChoice}
+              onClick={() => handleAddChoice(index)}
               className="mt-2 bg-green-500 text-white rounded-lg px-4 py-2"
             >
               Add Choice
@@ -150,47 +167,40 @@ const QuestionForm = () => {
     }
   };
 
-  const handleDeleteQuestion = (index) => {
-    const updatedQuestions = questions.filter((_, i) => i !== index);
+// Function to move a question up
+const handleMoveUp = (index) => {
+  if (index > 0) {
+    const updatedQuestions = [...questions];
+    const temp = updatedQuestions[index];
+    updatedQuestions[index] = updatedQuestions[index - 1];
+    updatedQuestions[index - 1] = temp;
     setQuestions(updatedQuestions);
-  };
-
-  const handleMoveUp = (index) => {
-    if (index > 0) {
-      const updatedQuestions = [...questions];
-      const temp = updatedQuestions[index];
-      updatedQuestions[index] = updatedQuestions[index - 1];
-      updatedQuestions[index - 1] = temp;
-      setQuestions(updatedQuestions);
-    }
-  };
-
-  const handleMoveDown = (index) => {
-    if (index < questions.length - 1) {
-      const updatedQuestions = [...questions];
-      const temp = updatedQuestions[index];
-      updatedQuestions[index] = updatedQuestions[index + 1];
-      updatedQuestions[index + 1] = temp;
-      setQuestions(updatedQuestions);
-    }
-  };
+  }
+};
+    // Function to move a question down
+    const handleMoveDown = (index) => {
+      if (index < questions.length - 1) {
+        const updatedQuestions = [...questions];
+        const temp = updatedQuestions[index];
+        updatedQuestions[index] = updatedQuestions[index + 1];
+        updatedQuestions[index + 1] = temp;
+        setQuestions(updatedQuestions);
+      }
+    };
 
 
-    // Function to handle filter stage change
-    const handleFilterChange = (e) => {
-        setFilterStage(e.target.value);
-      };
-    
-      // Filtering questions based on the selected stage
-      const filteredQuestions = filterStage === "all" ? questions : questions.filter((question) => question.stage === filterStage);
-    
-
+  // Filtering questions based on the selected stage
+  const filteredQuestions =
+    filterStage === "all"
+      ? questions
+      : questions.filter((question) => question.stage === filterStage);
 
   return (
     <div className="w-full">
+      {/* Render filters */}
       <div className="flex justify-between p-2">
         <div className="text-3xl font-bold pb-3">Report Name : </div>
-        <div className="text-3xl font-bold pb-3">  All Stages </div>
+        <div className="text-3xl font-bold pb-3"> All Stages </div>
         <div className="text-3xl font-bold pb-3">Filter by stages:</div>
         <select
           value={filterStage}
@@ -203,7 +213,7 @@ const QuestionForm = () => {
           <option value="closed">Closed</option>
         </select>
       </div>
-
+      {/* Render table headers */}
       <table className="w-full border-collapse border border-gray-200">
         <thead>
           <tr>
@@ -216,12 +226,11 @@ const QuestionForm = () => {
             <th className="border border-gray-200 p-2">Sort</th>
           </tr>
         </thead>
-
         <tbody>
-        {filteredQuestions.map((question, index) => (
-         
+          {/* Render table rows */}
+          {filteredQuestions.map((question, index) => (
             <tr key={index}>
-              {/* question name  */}
+              {/* Render question name input field */}
               <td className="border border-gray-200 p-2">
                 <input
                   type="text"
@@ -231,28 +240,25 @@ const QuestionForm = () => {
                   className="w-full"
                 />
               </td>
-
-              {/* questionType (essay- single - multi) */}
+              {/* Render question type select field */}
               <td className="p-2">
                 <select
-                  id="questionType"
-                  value={questionType}
-                  onChange={handleQuestionTypeChange}
+                  value={question.type}
+                  onChange={(e) => handleQuestionTypeChange(e, index)}
                   className="border border-gray-400 p-2 w-full"
                 >
-                  <option value="">Select...</option>
                   <option value="essay">Essay</option>
                   <option value="single_choice">Single Choice</option>
                   <option value="multi_choice">Multiple Choice</option>
                 </select>
               </td>
-
-              {/* Choices */}
+              {/* Render choices input field */}
               <td className="p-2">
-                {questionType && <>{renderInputBasedOnType()}</>}
+                {question.type && (
+                  <>{renderInputBasedOnType(question, index)}</>
+                )}
               </td>
-
-              {/* Stage  */}
+              {/* Render stage select field */}
               <td className="border border-gray-200 p-2">
                 <select
                   name="stage"
@@ -265,8 +271,7 @@ const QuestionForm = () => {
                   <option value="closed">Closed</option>
                 </select>
               </td>
-
-              {/* attach file  */}
+              {/* Render attach file checkbox */}
               <td className="border border-gray-200 p-2">
                 <input
                   type="checkbox"
@@ -275,8 +280,7 @@ const QuestionForm = () => {
                   onChange={(e) => handleInputChange(e, index)}
                 />
               </td>
-
-              {/* delete button  */}
+              {/* Render delete button */}
               <td className="border border-gray-200 p-2">
                 <button
                   type="button"
@@ -286,8 +290,7 @@ const QuestionForm = () => {
                   delete
                 </button>
               </td>
-
-              {/* up and down  */}
+              {/* Render move up and move down buttons */}
               <td className="border border-gray-200 p-2">
                 {index > 0 && (
                   <div className="flex flex-col items-center">
@@ -316,9 +319,9 @@ const QuestionForm = () => {
           ))}
         </tbody>
       </table>
+      {/* Render add new question button */}
       <button
         type="button"
-        variant="danger"
         onClick={handleAddQuestion}
         className=" mt-2 bg-cyan-600 text-white rounded-lg px-4 py-2"
       >
